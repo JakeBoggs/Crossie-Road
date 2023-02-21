@@ -43,7 +43,7 @@
                 canvas.toBlob(blob => {
                     formData.append('image', blob, 'image.png');
                     
-                    let req = fetch('http://localhost:5000/v1/object-detection', {
+                    let req = fetch('/v1/object-detection', {
                         method: 'post',
                         body: formData
                     });
@@ -78,7 +78,7 @@
 
                     formData.append('image', blob, 'image.png');
                     
-                    let req = fetch('http://localhost:5000/v1/depth-perception', {
+                    let req = fetch('/v1/depth-perception', {
                         method: 'post',
                         body: formData
                     });

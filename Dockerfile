@@ -4,9 +4,12 @@ RUN apt-get update
 RUN apt-get install ffmpeg libsm6 libxext6  -y
 
 WORKDIR /app
-ADD . /app
+
+COPY requirements.txt /app/requirements.txt
 
 RUN pip install -r requirements.txt
+
+ADD . /app
 
 EXPOSE 5000
 
