@@ -16,25 +16,31 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+feed = ""
+current_frame = None
+
 @app.route("/", methods=["GET"])
 def main():
     return render_template("index.html")
 
-@app.route("/v1/object-detection", methods=["POST"])
+@app.route("/camera", methods=["GET"])
+def camera():
+    return render_template("camera.html")
+
+@app.route("/api/object-detection", methods=["GET"])
 def classify():
-    if not request.method == "POST":
-        return
-    
-    if request.files.get("image"):
-        image_file = request.files["image"]
-        image_bytes = image_file.read()
-        img = Image.open(io.BytesIO(image_bytes))
-        results = model(img, size=640) # reduce size=320 for faster inference
+    global current_frame
+
+    if current_frame != None:
+        results = model(current_frame, size=640) # reduce size=320 for faster inference
 
         return results.pandas().xyxy[0].to_json(orient="records")
 
-@app.route("/v1/depth-perception", methods=["POST"])
+@app.route("/api/depth-perception", methods=["POST"])
 def depth():
+    global feed
+    global current_frame
+
     if not request.method == "POST":
         return
     
@@ -42,6 +48,9 @@ def depth():
         image_file = request.files["image"]
         image_bytes = image_file.read()
         img = Image.open(io.BytesIO(image_bytes))
+
+        current_frame = img
+
         img = np.array(img)
         img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
 
@@ -61,7 +70,14 @@ def depth():
 
         _, buffer = cv2.imencode('.png', np.array(output / np.max(output) * 255, dtype=np.uint8))
 
-        return base64.b64encode(buffer)
+        feed = base64.b64encode(buffer)
+
+        return feed
+
+@app.route("/api/feed", methods=["GET"])
+def get_feed():
+    global feed
+    return feed
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Flask app exposing yolov5 models")

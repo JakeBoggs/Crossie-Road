@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Shitter 9000</title>
+    </head>
+    <body>
+        <h1>Shitter 9000</h1>
+        <br><br>
+        <video id="videoCam" style="display: none;"></video>
+        <canvas id="video-feed" style="display: none;"></canvas>
+        <canvas id="depth"></canvas>
+        <script>
+            let video = document.getElementById('videoCam');
+            let canvas = document.getElementById('video-feed');
+            let depthView = document.getElementById('depth');
+            let All_mediaDevices = navigator.mediaDevices;
+            
+            All_mediaDevices.getUserMedia({
+                audio: false,
+                video: true
+            }).then(vidStream => {
+                if ('srcObject' in video) {
+                    video.srcObject = vidStream;
+                } else {
+                    video.src = window.URL.createObjectURL(vidStream);
+                }
+                video.onloadedmetadata = () => video.play();
+            });
+
+            function updateCanvas() {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                window.requestAnimationFrame(updateCanvas);
+            }
+
+            function estimateDepth() {
+                if(depthView.width != video.videoWidth) {
+                    depthView.width = video.videoWidth;
+                    depthView.height = video.videoHeight;
+                }
+
+                const formData = new FormData();
+
+                canvas.toBlob(blob => {
+                    if(blob === null) return setTimeout(estimateDepth(), 0);
+
+                    formData.append('image', blob, 'image.png');
+                    
+                    let req = fetch('/api/depth-perception', {
+                        method: 'post',
+                        body: formData
+                    });
+
+                    req.then(async response => await response.text()).then(results => {
+                        let ctx = depthView.getContext('2d');
+                        let image = new Image();
+
+                        image.onload = () => ctx.drawImage(image, 0, 0);
+                        image.src = 'data:image/png;base64,' + results;
+
+                        setTimeout(estimateDepth(), 0);
+                    });
+                });
+            }
+
+            updateCanvas();
+            estimateDepth();
+        </script>
+    </body>
+</html>
