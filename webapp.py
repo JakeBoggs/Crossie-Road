@@ -1,7 +1,3 @@
-"""
-Simple app to upload an image via a web form 
-and view the inference results on the image in the browser.
-"""
 import argparse
 import io
 import cv2
@@ -51,24 +47,24 @@ def depth():
 
         current_frame = img
 
-        img = np.array(img)
-        img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
+        # img = np.array(img)
+        # img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
 
-        input_batch = transform(img).to(device)
+        # input_batch = transform(img).to(device)
 
-        with torch.no_grad():
-            prediction = midas(input_batch)
+        # with torch.no_grad():
+        #     prediction = midas(input_batch)
 
-            prediction = torch.nn.functional.interpolate(
-                prediction.unsqueeze(1),
-                size=img.shape[:2],
-                mode="bicubic",
-                align_corners=False,
-            ).squeeze()
+        #     prediction = torch.nn.functional.interpolate(
+        #         prediction.unsqueeze(1),
+        #         size=img.shape[:2],
+        #         mode="bicubic",
+        #         align_corners=False,
+        #     ).squeeze()
             
-        output = prediction.cpu().numpy()
+        # output = prediction.cpu().numpy()
 
-        _, buffer = cv2.imencode('.png', np.array(output / np.max(output) * 255, dtype=np.uint8))
+        _, buffer = cv2.imencode('.png', np.array(img / np.max(img) * 255, dtype=np.uint8))
 
         feed = base64.b64encode(buffer)
 
