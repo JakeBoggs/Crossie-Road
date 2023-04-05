@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Shitter 9000</title>
+        <title>Crossie Road</title>
     </head>
     <body>
-        <h1>Shitter 9000</h1>
+        <h1>Crossie Road</h1>
         <br><br>
         <video id="videoCam" style="display: none;"></video>
         <canvas id="video-feed" style="display: none;"></canvas>
@@ -13,11 +13,18 @@
             let video = document.getElementById('videoCam');
             let canvas = document.getElementById('video-feed');
             let depthView = document.getElementById('depth');
-            let All_mediaDevices = navigator.mediaDevices;
+            let wakeLock = null;
+
+            navigator.wakeLock.request('screen').then(lock => wakeLock = lock);
+
+            document.addEventListener('visibilitychange', async () => {
+                if (wakeLock !== null && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen');
+            });
             
-            All_mediaDevices.getUserMedia({
+            navigator.mediaDevices.getUserMedia({
+                video: true,
                 audio: false,
-                video: true
+                facingMode: 'environment'
             }).then(vidStream => {
                 if ('srcObject' in video) {
                     video.srcObject = vidStream;
