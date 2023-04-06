@@ -2,11 +2,23 @@
 <html>
     <head>
         <title>Crossie Road</title>
+        <style>
+            body {
+                margin: 0px;
+                padding: 0px;
+                width: 100%;
+                height: 100vh;
+                overflow: auto;
+                text-align: center;
+                font-family: "Comic Sans MS", "Comic Sans", sans-serif;
+            }
+        </style>
     </head>
-    <body>
+    <body onclick="getDetections()">
         <h1>Crossie Road</h1>
         <br>
-        <button onclick="getDetections()" style="background-color: yellow; width: 200px; height: 100px; font-size: 25px;">Is it safe?</button>
+        Tap anywhere to check the road
+        <!-- <button onclick="getDetections()" style="background-color: yellow; width: 200px; height: 100px; font-size: 25px; width: 100%; height: 400px;">Is it safe?</button> -->
         <br><br>
         <canvas id="video-feed"></canvas>
         <script>
@@ -19,9 +31,7 @@
                     method: 'get'
                 });
 
-                req.then(async response => await response.json()).then(results => {
-                    console.log(results);
-                    
+                req.then(async response => await response.json()).then(results => {                    
                     let msg = new SpeechSynthesisUtterance();
                     let voices = window.speechSynthesis.getVoices();
                     msg.voice = voices[2]; 
@@ -29,18 +39,16 @@
                     msg.pitch = 0.1; // From 0 to 2
                     msg.text = 'Safe';
                     
-                    for(const result of results) if(result.name === 'car' || result.name === 'bus') msg.text = 'Danger';
+                    for(const result of results) if(result.name === 'car' || result.name === 'bus' || result.name === 'motorcycle') msg.text = 'Danger';
 
                     window.speechSynthesis.speak(msg);
                 });
             }
 
             function updateFeed() {
-                let req = fetch('/api/feed', {
+                fetch('/api/feed', {
                     method: 'get'
-                });
-
-                req.then(async response => await response.text()).then(results => {
+                }).then(async response => await response.text()).then(results => {
                     let ctx = canvas.getContext('2d');
                     let image = new Image();
 
@@ -52,9 +60,7 @@
                         ctx.drawImage(image, 0, 0);
                     };
                     image.src = 'data:image/png;base64,' + results;
-
-                    setTimeout(updateFeed(), 500);
-                });
+                }).finally(() => setTimeout(updateFeed(), 500));
             }
 
             updateFeed();

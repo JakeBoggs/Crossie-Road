@@ -47,8 +47,8 @@ def depth():
 
         current_frame = img
 
-        # img = np.array(img)
-        # img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
+        img = np.array(img)
+        img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
 
         # input_batch = transform(img).to(device)
 
